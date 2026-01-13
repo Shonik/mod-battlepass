@@ -213,10 +213,10 @@ end
 RegisterPlayerEvent(3, OnPlayerLogin)      -- PLAYER_EVENT_ON_LOGIN
 RegisterPlayerEvent(4, OnPlayerLogout)     -- PLAYER_EVENT_ON_LOGOUT
 RegisterPlayerEvent(7, OnCreatureKill)     -- PLAYER_EVENT_ON_KILL_CREATURE
-RegisterPlayerEvent(6, OnQuestComplete)    -- PLAYER_EVENT_ON_QUEST_COMPLETE
+RegisterPlayerEvent(54, OnQuestComplete)    -- PLAYER_EVENT_ON_QUEST_COMPLETE
 RegisterPlayerEvent(13, OnPlayerLevelChange) -- PLAYER_EVENT_ON_LEVEL_CHANGE
 
-RegisterPlayerEvent(23, OnHonorableKill)   -- PLAYER_EVENT_ON_KILL_PLAYER
+RegisterPlayerEvent(6, OnHonorableKill)   -- PLAYER_EVENT_ON_KILL_PLAYER
 
 RegisterServerEvent(15, OnServerShutdown)  -- WORLD_EVENT_ON_SHUTDOWN
 RegisterBGEvent(2, OnBattlegroundEndHook)       -- BG_EVENT_ON_END
