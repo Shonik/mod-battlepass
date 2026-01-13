@@ -41,6 +41,7 @@ A complete Battle Pass progression system for AzerothCore 3.3.5a with ALE.
 ### Client Addon
 
 Copy `BattlePassAddon/` folder to your WoW `Interface/AddOns/` directory or include it in a MPQ patch with the same hierarchy.
+`/bp` or `/battlepass` ingame to toggle the frame.
 
 ## Configuration
 
