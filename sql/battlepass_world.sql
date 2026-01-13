@@ -63,7 +63,6 @@ CREATE TABLE IF NOT EXISTS `battlepass_levels` (
 
 -- Insert level rewards (IGNORE if already exists - allows customization)
 INSERT IGNORE INTO `battlepass_levels` (`level`, `exp_required`, `reward_type`, `reward_id`, `reward_count`, `reward_name`, `reward_icon`, `description`) VALUES
--- Early levels (1-10)
 (1,  0, 2, 0, 10000,   '1 Gold',                'INV_Misc_Coin_02',              'A small reward to start your journey'),
 (2,  0, 1, 4306, 10,   'Silk Cloth x10',        'INV_Fabric_Silk_01',            'Useful crafting material'),
 (3,  0, 2, 0, 25000,   '2 Gold 50 Silver',      'INV_Misc_Coin_02',              'Building your fortune'),
@@ -74,8 +73,6 @@ INSERT IGNORE INTO `battlepass_levels` (`level`, `exp_required`, `reward_type`, 
 (8,  0, 1, 33470, 5,   'Frostweave Cloth x5',   'INV_Fabric_Frostweave',         'Northrend crafting material'),
 (9,  0, 2, 0, 100000,  '10 Gold',               'INV_Misc_Coin_01',              'Double digits!'),
 (10, 0, 1, 49426, 1,   'Emblem of Frost',       'Spell_Holy_SummonChampion',     'Tier 10 currency'),
-
--- Mid levels (11-20)
 (11, 0, 2, 0, 150000,  '15 Gold',               'INV_Misc_Coin_01',              'Nice savings'),
 (12, 0, 1, 43102, 5,   'Frozen Orb x5',         'Spell_Nature_Removecurse',      'Crafting reagent'),
 (13, 0, 2, 0, 200000,  '20 Gold',               'INV_Misc_Coin_01',              'Halfway to a mount'),
@@ -86,8 +83,6 @@ INSERT IGNORE INTO `battlepass_levels` (`level`, `exp_required`, `reward_type`, 
 (18, 0, 2, 0, 400000,  '40 Gold',               'INV_Misc_Coin_01',              'Mounting funds'),
 (19, 0, 1, 20400, 1,   'Pumpkin Bag',           'INV_Misc_Bag_10_Blue',          '16 slot bag'),
 (20, 0, 3, 42, 0,      'the Explorer',          'Achievement_Zone_EasternKingdoms_01', 'Title: <name> the Explorer'),
-
--- High levels (21-30)
 (21, 0, 2, 0, 500000,  '50 Gold',               'INV_Misc_Coin_01',              'Half century of gold'),
 (22, 0, 1, 49426, 5,   'Emblem of Frost x5',    'Spell_Holy_SummonChampion',     'Tier 10 currency bundle'),
 (23, 0, 2, 0, 750000,  '75 Gold',               'INV_Misc_Coin_01',              'Growing fortune'),
@@ -123,7 +118,6 @@ INSERT IGNORE INTO `battlepass_progress_sources` (`source_type`, `source_subtype
 ('KILL_CREATURE',    0, 5,   1.0, 1, 80, 1, 'Any creature kill'),
 ('KILL_ELITE',       0, 25,  1.0, 1, 80, 1, 'Elite creature kill (rank >= 1)'),
 ('KILL_BOSS',        0, 100, 1.0, 1, 80, 1, 'Dungeon/Raid boss kill'),
-('KILL_WORLDBOSS',   0, 500, 1.0, 1, 80, 1, 'World boss kill'),
 
 -- Quest completion
 ('COMPLETE_QUEST',   0, 50,  1.0, 1, 80, 1, 'Any quest completion'),
@@ -135,12 +129,7 @@ INSERT IGNORE INTO `battlepass_progress_sources` (`source_type`, `source_subtype
 -- PvP activities
 ('WIN_BATTLEGROUND', 0, 150, 1.0, 10, 80, 1, 'Battleground victory'),
 ('LOSE_BATTLEGROUND',0, 50,  1.0, 10, 80, 1, 'Battleground participation (loss)'),
-('WIN_ARENA',        0, 100, 1.0, 70, 80, 1, 'Arena match win'),
 ('HONOR_KILL',       0, 10,  1.0, 10, 80, 1, 'Honorable kill in PvP'),
-
--- Dungeon/Raid
-('DUNGEON_COMPLETE', 0, 200, 1.0, 15, 80, 1, 'Dungeon completion'),
-('RAID_BOSS_KILL',   0, 300, 1.0, 60, 80, 1, 'Raid boss kill'),
 
 -- Special
 ('LOGIN_DAILY',      0, 100, 1.0, 1, 80, 1, 'First login of the day'),

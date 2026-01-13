@@ -55,11 +55,9 @@ local levelItems = {}  -- Changed from levelRows to levelItems
 local scrollOffset = 0
 local VISIBLE_ITEMS = 8  -- Number of items visible horizontally
 local ITEM_WIDTH = 103   -- Width of each level card (92 + 11 spacing)
-local ITEMS_PER_ROW = 8  -- Items displayed per row
 
--- Timer for delayed actions (3.3.5 compatible)
+-- Timer for delayed actions
 local pendingTimer = nil
-local timerElapsed = 0
 
 -- ============================================================================
 -- Utility Functions
@@ -128,7 +126,7 @@ end
 -- CSMH Message Handlers (Server -> Client)
 -- ============================================================================
 
--- Handler for full sync response (function ID 1)
+-- Handler for full sync response
 -- Receives: { level, currentExp, expRequired, totalExp, maxLevel, claimedLevels (table), config (table) }
 function BattlePass_OnFullSync(sender, args)
     if not args or #args < 6 then return end
@@ -154,7 +152,7 @@ function BattlePass_OnFullSync(sender, args)
     BattlePass_UpdateUI()
 end
 
--- Handler for level definitions (function ID 2)
+-- Handler for level definitions
 -- Receives: { levels (table of level definitions) }
 function BattlePass_OnLevelDefinitions(sender, args)
     if not args or #args < 1 then return end
@@ -179,7 +177,7 @@ function BattlePass_OnLevelDefinitions(sender, args)
     BattlePass_UpdateUI()
 end
 
--- Handler for progress updates (function ID 3)
+-- Handler for progress updates
 -- Receives: { gainedExp, newLevel, currentExp, expRequired, levelsGained }
 function BattlePass_OnProgressUpdate(sender, args)
     if not args or #args < 5 then return end
@@ -208,7 +206,7 @@ function BattlePass_OnProgressUpdate(sender, args)
     BattlePass_UpdateUI()
 end
 
--- Handler for claim result (function ID 4)
+-- Handler for claim result
 -- Receives: { success, level, message, updatedLevels (optional) }
 function BattlePass_OnClaimResult(sender, args)
     if not args or #args < 3 then return end
@@ -236,7 +234,7 @@ function BattlePass_OnClaimResult(sender, args)
     BattlePass_UpdateUI()
 end
 
--- Handler for error messages (function ID 5)
+-- Handler for error messages
 -- Receives: { code, message }
 function BattlePass_OnError(sender, args)
     if not args or #args < 2 then return end
@@ -251,17 +249,17 @@ end
 -- Client -> Server Communication
 -- ============================================================================
 
--- Request sync from server (function ID 1)
+-- Request sync from server
 function BattlePass_RequestSync()
     SendClientRequest(CSMHConfig.Prefix, 1)
 end
 
--- Request to claim a specific level (function ID 2)
+-- Request to claim a specific level
 local function RequestClaimLevel(level)
     SendClientRequest(CSMHConfig.Prefix, 2, level)
 end
 
--- Request to claim all available rewards (function ID 3)
+-- Request to claim all available rewards
 function BattlePass_ClaimAll()
     SendClientRequest(CSMHConfig.Prefix, 3)
 end
@@ -275,7 +273,6 @@ local isInitialized = false
 
 -- Initialize the main frame
 function BattlePass_OnFrameLoad(frame)
-    -- Just set up basic frame properties here (OnLoad happens before chat is ready)
     if frame then
         frame:RegisterForDrag("LeftButton")
     end
@@ -317,7 +314,7 @@ end
 function BattlePass_UpdateUI()
     if not BattlePassFrame or not BattlePassFrame:IsShown() then return end
 
-    -- Update level text (Achievement Frame style: big number + small max)
+    -- Update level text
     local levelText = _G["BattlePassLevelText"]
     local maxLevelText = _G["BattlePassMaxLevelText"]
 
@@ -583,7 +580,7 @@ function BattlePass_OnShow()
 end
 
 -- ============================================================================
--- XP Gain Animation (3.3.5 compatible - simple fade)
+-- XP Gain Animation
 -- ============================================================================
 
 local xpGainFadeTime = 0
@@ -625,7 +622,7 @@ end
 
 function BattlePass_ShowLevelUp(newLevel)
     -- Play sound (LEVELUPSOUND = 888)
-    PlaySound("LevelUp")
+    -- PlaySound("LevelUp")
 
     -- Print message
     print("|cffff8000[Battle Pass]|r Level " .. newLevel .. " reached!")
@@ -649,7 +646,7 @@ function BattlePass_ScrollPrev()
     scrollOffset = math.max(0, scrollOffset - VISIBLE_ITEMS)
     BattlePass_UpdateScrollFrame()
     BattlePassScrollBar_Update()
-    PlaySound("igMainMenuOptionCheckBoxOn")
+    -- PlaySound("igMainMenuOptionCheckBoxOn")
 end
 
 -- Scroll to next items (navigate right)
@@ -658,11 +655,11 @@ function BattlePass_ScrollNext()
     scrollOffset = math.min(maxOffset, scrollOffset + VISIBLE_ITEMS)
     BattlePass_UpdateScrollFrame()
     BattlePassScrollBar_Update()
-    PlaySound("igMainMenuOptionCheckBoxOn")
+    --PlaySound("igMainMenuOptionCheckBoxOn")
 end
 
 -- ============================================================================
--- Horizontal ScrollBar Handlers (Achievement UI style)
+-- Horizontal ScrollBar Handlers
 -- ============================================================================
 
 function BattlePassScrollBar_OnLoad(self)
@@ -749,7 +746,7 @@ SlashCmdList["BATTLEPASS"] = function(msg)
 end
 
 -- ============================================================================
--- Event Handler (3.3.5 compatible - no C_Timer)
+-- Event Handler
 -- ============================================================================
 
 local eventFrame = CreateFrame("Frame")
@@ -764,7 +761,7 @@ eventFrame:SetScript("OnUpdate", function(self, elapsed)
     -- Handle XP gain fade animation
     XPGainFadeUpdate(self, elapsed)
 
-    -- Handle delayed login sync (replaces C_Timer.After)
+    -- Handle delayed login sync
     if pendingTimer then
         loginTimer = loginTimer + elapsed
         if loginTimer >= 2 then
