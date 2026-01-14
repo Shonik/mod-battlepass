@@ -151,3 +151,9 @@ mod-battlepass/
 ## License
 
 MIT License
+
+## Credits
+
+- [CSMH](https://github.com/Foereaper/CSMH)
+- [ALE](https://github.com/azerothcore/mod-ale)
+- [AzerothCore](https://github.com/azerothcore/azerothcore-wotlk)
