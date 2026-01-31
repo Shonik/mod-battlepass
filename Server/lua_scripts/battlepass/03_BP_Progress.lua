@@ -11,10 +11,6 @@ BattlePass.Progress = BattlePass.Progress or {}
 -- XP Required Per Level
 
 function BattlePass.Progress.GetExpForLevel(level)
-    if level <= 0 then
-        return 0
-    end
-
     -- Check for custom XP defined for this level
     local levelData = BattlePass.LevelCache[level]
     if levelData and levelData.exp_required > 0 then
@@ -43,15 +39,10 @@ function BattlePass.Progress.AwardExp(player, amount, source)
         return 0, 0
     end
 
-    if amount <= 0 then
-        return 0, 0
-    end
-
     local data = BattlePass.DB.GetOrCreatePlayerData(player)
     local maxLevel = BattlePass.GetConfigNumber("max_level", 100)
 
     if data.current_level >= maxLevel then
-        BattlePass.Debug("Player already at max level, no XP awarded")
         return 0, 0
     end
 
@@ -59,9 +50,6 @@ function BattlePass.Progress.AwardExp(player, amount, source)
     data.current_exp = data.current_exp + amount
     data.total_exp = data.total_exp + amount
     data.dirty = true
-
-    BattlePass.Debug(string.format("Awarded %d XP to %s from %s (Current: %d)",
-        amount, player:GetName(), source or "unknown", data.current_exp))
 
     -- Check for level-ups
     local levelsGained = 0
@@ -71,19 +59,9 @@ function BattlePass.Progress.AwardExp(player, amount, source)
             data.current_exp = data.current_exp - expRequired
             data.current_level = data.current_level + 1
             levelsGained = levelsGained + 1
-
-            BattlePass.Info(string.format("%s reached Battle Pass level %d!",
-                player:GetName(), data.current_level))
         else
             break
         end
-    end
-
-    -- Notify player
-    if levelsGained > 0 then
-        BattlePass.Progress.NotifyLevelUp(player, oldLevel, data.current_level)
-    else
-        BattlePass.Progress.NotifyExpGain(player, amount, data)
     end
 
     -- Send update to addon
@@ -95,42 +73,6 @@ function BattlePass.Progress.AwardExp(player, amount, source)
     BattlePass.DB.SavePlayerProgress(player:GetGUIDLow(), data)
 
     return amount, levelsGained
-end
-
--- Player Notifications
-
-function BattlePass.Progress.NotifyExpGain(player, amount, data)
-    local expRequired = BattlePass.Progress.GetExpForLevel(data.current_level + 1)
-    local maxLevel = BattlePass.GetConfigNumber("max_level", 100)
-
-    if data.current_level >= maxLevel then
-        player:SendBroadcastMessage(string.format(
-            "|cff00ff00[Battle Pass]|r +%d XP (MAX level reached)",
-            amount))
-    else
-        player:SendBroadcastMessage(string.format(
-            "|cff00ff00[Battle Pass]|r +%d XP (%d/%d for level %d)",
-            amount, data.current_exp, expRequired, data.current_level + 1))
-    end
-end
-
-function BattlePass.Progress.NotifyLevelUp(player, oldLevel, newLevel)
-    local levelsGained = newLevel - oldLevel
-
-    if levelsGained == 1 then
-        player:SendBroadcastMessage(string.format(
-            "|cffff8000[Battle Pass]|r Level %d reached! Use |cff00ff00.bp claim %d|r to claim your reward.",
-            newLevel, newLevel))
-    else
-        player:SendBroadcastMessage(string.format(
-            "|cffff8000[Battle Pass]|r %d levels gained! (Level %d -> %d)",
-            levelsGained, oldLevel, newLevel))
-        player:SendBroadcastMessage(
-            "|cff00ff00[Battle Pass]|r Use |cff00ff00.bp|r to see your available rewards.")
-    end
-
-    -- Play level-up sound (optional)
-    -- player:PlayDirectSound(888)
 end
 
 -- Progression Sources
@@ -171,13 +113,7 @@ end
 function BattlePass.Progress.CalculateExp(player, sourceType, subtype)
     local sourceConfig = BattlePass.Progress.GetSourceConfig(sourceType, subtype)
 
-    if not sourceConfig then
-        BattlePass.Debug("No source config for: " .. sourceType)
-        return 0
-    end
-
     if not BattlePass.Progress.CanReceiveExp(player, sourceConfig) then
-        BattlePass.Debug("Player cannot receive XP from: " .. sourceType)
         return 0
     end
 

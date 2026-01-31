@@ -22,7 +22,7 @@ function BattlePass.Rewards.GrantItemReward(player, rewardData)
 
     local itemTemplate = GetItemTemplate(itemId)
     if not itemTemplate then
-        return false, "Invalid item: " .. itemId
+        return false
     end
 
     local existingCount = player:GetItemCount(itemId)
@@ -35,37 +35,27 @@ function BattlePass.Rewards.GrantItemReward(player, rewardData)
 
             if maxCount == 1 then
                 local itemLink = GetItemLink(itemId)
-                return false, string.format("You already own %s (unique item)!",
-                    itemLink or rewardData.reward_name)
+                return false -- unique item
             end
 
             if maxCount > 0 and (existingCount + count) > maxCount then
                 local itemLink = GetItemLink(itemId)
-                return false, string.format("Limit reached for %s (max: %d)!",
-                    itemLink or rewardData.reward_name, maxCount)
+                return false -- limit reached
             end
         end
     end
 
     if not player:AddItem(itemId, count) then
-        return false, "Inventory full! Free up space and try again."
+        return false -- inventory full
     end
 
     local itemLink = GetItemLink(itemId)
-    local message = string.format("Received: %s x%d", itemLink or rewardData.reward_name, count)
 
-    BattlePass.Info(string.format("%s claimed item reward: %d x%d",
-        player:GetName(), itemId, count))
-
-    return true, message
+    return true
 end
 
 function BattlePass.Rewards.GrantGoldReward(player, rewardData)
     local copper = rewardData.reward_count or 0
-
-    if copper <= 0 then
-        return false, "Invalid gold amount"
-    end
 
     player:ModifyMoney(copper)
 
@@ -84,54 +74,32 @@ function BattlePass.Rewards.GrantGoldReward(player, rewardData)
         amountStr = amountStr .. copperRem .. "c"
     end
 
-    local message = "Received: " .. amountStr
 
-    BattlePass.Info(string.format("%s claimed gold reward: %d copper",
-        player:GetName(), copper))
-
-    return true, message
+    return true
 end
 
 function BattlePass.Rewards.GrantTitleReward(player, rewardData)
     local titleId = rewardData.reward_id
 
-    if not titleId or titleId <= 0 then
-        return false, "Invalid title"
-    end
-
     if player:HasTitle(titleId) then
-        return false, "You already have this title!"
+        return false -- already owned
     end
 
     player:SetKnownTitle(titleId)
 
-    local message = string.format("Title unlocked: %s", rewardData.reward_name)
-
-    BattlePass.Info(string.format("%s claimed title reward: %d (%s)",
-        player:GetName(), titleId, rewardData.reward_name))
-
-    return true, message
+    return true
 end
 
 function BattlePass.Rewards.GrantSpellReward(player, rewardData)
     local spellId = rewardData.reward_id
 
-    if not spellId or spellId <= 0 then
-        return false, "Invalid spell"
-    end
-
     if player:HasSpell(spellId) then
-        return false, "You already know this spell!"
+        return false -- already known
     end
 
     player:LearnSpell(spellId)
 
-    local message = string.format("Spell learned: %s", rewardData.reward_name)
-
-    BattlePass.Info(string.format("%s claimed spell reward: %d (%s)",
-        player:GetName(), spellId, rewardData.reward_name))
-
-    return true, message
+    return true
 end
 
 function BattlePass.Rewards.GrantCurrencyReward(player, rewardData)
@@ -143,11 +111,11 @@ end
 -- ============================================================================
 
 local REWARD_HANDLERS = {
-    [1] = BattlePass.Rewards.GrantItemReward,     -- item
-    [2] = BattlePass.Rewards.GrantGoldReward,     -- gold
-    [3] = BattlePass.Rewards.GrantTitleReward,    -- title
-    [4] = BattlePass.Rewards.GrantSpellReward,    -- spell
-    [5] = BattlePass.Rewards.GrantCurrencyReward, -- currency
+    [1] = BattlePass.Rewards.GrantItemReward,
+    [2] = BattlePass.Rewards.GrantGoldReward,
+    [3] = BattlePass.Rewards.GrantTitleReward,
+    [4] = BattlePass.Rewards.GrantSpellReward,
+    [5] = BattlePass.Rewards.GrantCurrencyReward,
 }
 
 -- ============================================================================
@@ -156,96 +124,45 @@ local REWARD_HANDLERS = {
 
 function BattlePass.Rewards.ClaimReward(player, level)
     if not BattlePass.IsEnabled() then
-        return false, "Battle Pass system is disabled."
+        return false
     end
 
     local guid = player:GetGUIDLow()
     local data = BattlePass.DB.GetOrCreatePlayerData(player)
 
     local levelData = BattlePass.LevelCache[level]
-    if not levelData then
-        return false, string.format("Level %d does not exist.", level)
-    end
 
     if data.current_level < level then
-        return false, string.format(
-            "You must reach level %d (current: %d).",
-            level, data.current_level)
+        return false
     end
 
     if BattlePass.DB.IsLevelClaimed(guid, level) then
-        return false, string.format("Level %d reward already claimed!", level)
+        return false
     end
 
     local rewardType = levelData.reward_type
     local handler = REWARD_HANDLERS[rewardType]
 
-    if not handler then
-        BattlePass.Error("Unknown reward type: " .. tostring(rewardType))
-        return false, "Unknown reward type."
-    end
-
-    local success, message = handler(player, levelData)
+    local success = handler(player, levelData)
 
     if success then
         BattlePass.DB.MarkLevelClaimed(guid, level)
         BattlePass.DB.SavePlayerProgress(guid, data)
 
-        if BattlePass.Communication then
-            BattlePass.Communication.SendClaimConfirmation(player, level)
-        end
+        BattlePass.Communication.SendClaimConfirmation(player, level)
 
-        player:SendBroadcastMessage(string.format(
-            "|cff00ff00[Battle Pass]|r Level %d: %s", level, message))
-
-        return true, message
+        return true
     else
-        player:SendBroadcastMessage(string.format(
-            "|cffff0000[Battle Pass]|r Error: %s", message))
-
-        return false, message
+        return false
     end
 end
 
 function BattlePass.Rewards.ClaimAllRewards(player)
     local availableRewards = BattlePass.Progress.GetAvailableRewards(player)
 
-    local successCount = 0
-    local skippedCount = 0
-    local inventoryFullCount = 0
-
     for _, rewardData in ipairs(availableRewards) do
-        local success, message = BattlePass.Rewards.ClaimReward(player, rewardData.level)
-        if success then
-            successCount = successCount + 1
-        else
-            if message and message:find("Inventory full") then
-                inventoryFullCount = inventoryFullCount + 1
-                player:SendBroadcastMessage(
-                    "|cffff0000[Battle Pass]|r Inventory full! Free up space to continue.")
-                break
-            else
-                skippedCount = skippedCount + 1
-            end
-        end
+        BattlePass.Rewards.ClaimReward(player, rewardData.level)
     end
-
-    if successCount > 0 then
-        player:SendBroadcastMessage(string.format(
-            "|cff00ff00[Battle Pass]|r %d reward(s) claimed!", successCount))
-    end
-
-    if skippedCount > 0 then
-        player:SendBroadcastMessage(string.format(
-            "|cffff8000[Battle Pass]|r %d reward(s) skipped (already owned/learned)", skippedCount))
-    end
-
-    if successCount == 0 and skippedCount == 0 and inventoryFullCount == 0 then
-        player:SendBroadcastMessage(
-            "|cffff8000[Battle Pass]|r No rewards available to claim.")
-    end
-
-    return successCount, skippedCount + inventoryFullCount
 end
 
 -- ============================================================================

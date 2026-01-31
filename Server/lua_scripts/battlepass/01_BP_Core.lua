@@ -12,7 +12,6 @@
 
 BattlePass = BattlePass or {}
 
-BattlePass.VERSION = "1.0.0"
 BattlePass.Config = {}              -- Configuration cache (from battlepass_config)
 BattlePass.PlayerCache = {}         -- Player data cache (guid -> data)
 BattlePass.LevelCache = {}          -- Level cache (level -> reward_data)
@@ -119,8 +118,6 @@ function BattlePass.LoadConfig()
             BattlePass.Debug("Config default: " .. key .. " = " .. value)
         end
     end
-
-    BattlePass.Info("Configuration loaded (" .. BattlePass.TableCount(BattlePass.Config) .. " entries)")
 end
 
 function BattlePass.LoadRewardTypes()
@@ -140,8 +137,6 @@ function BattlePass.LoadRewardTypes()
             }
         until not query:NextRow()
     end
-
-    BattlePass.Info("Reward types loaded (" .. BattlePass.TableCount(BattlePass.RewardTypeCache) .. " types)")
 end
 
 function BattlePass.LoadLevels()
@@ -171,8 +166,6 @@ function BattlePass.LoadLevels()
             }
         until not query:NextRow()
     end
-
-    BattlePass.Info("Levels loaded (" .. BattlePass.TableCount(BattlePass.LevelCache) .. " levels)")
 end
 
 function BattlePass.LoadProgressSources()
@@ -211,8 +204,6 @@ function BattlePass.LoadProgressSources()
             }
         until not query:NextRow()
     end
-
-    BattlePass.Info("Progress sources loaded (" .. BattlePass.TableCount(BattlePass.SourceCache) .. " sources)")
 end
 
 -- ============================================================================
@@ -270,8 +261,6 @@ end
 -- ============================================================================
 
 function BattlePass.Initialize()
-    BattlePass.Info("Initializing Battle Pass System v" .. BattlePass.VERSION .. "...")
-
     BattlePass.TablesExist = BattlePass.CheckTablesExist()
 
     if not BattlePass.TablesExist then
@@ -299,12 +288,10 @@ function BattlePass.Initialize()
 end
 
 function BattlePass.Reload()
-    BattlePass.Info("Reloading Battle Pass configuration...")
 
     BattlePass.TablesExist = BattlePass.CheckTablesExist()
 
     if not BattlePass.TablesExist then
-        BattlePass.Error("Database tables not found!")
         return
     end
 
@@ -312,7 +299,6 @@ function BattlePass.Reload()
     BattlePass.LoadRewardTypes()
     BattlePass.LoadLevels()
     BattlePass.LoadProgressSources()
-    BattlePass.Info("Battle Pass configuration reloaded")
 end
 
 -- ============================================================================

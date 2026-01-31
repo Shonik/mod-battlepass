@@ -2,6 +2,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
 
+    <!-- Main Battle Pass Frame - Exact copy of Achievement Frame structure -->
     <Frame name="BattlePassFrame" toplevel="true" parent="UIParent" frameStrata="MEDIUM" hidden="true" enableMouse="true" movable="true">
         <Size>
             <AbsDimension x="980" y="350"/>
@@ -38,6 +39,7 @@
                 </Texture>
             </Layer>
             <Layer level="ARTWORK">
+                <!-- Parchment background on the right side (like Achievement Frame) -->
                 <Texture name="BattlePassFrameContentBG" file="Interface\AchievementFrame\UI-Achievement-Parchment">
                     <Anchors>
                         <Anchor point="TOPLEFT">
@@ -224,6 +226,7 @@
             </Layer>
         </Layers>
         <Frames>
+            <!-- Header Frame (like Achievement Frame) -->
             <Frame name="BattlePassFrameHeader" enableMouse="true">
                 <Size>
                     <AbsDimension x="726" y="106"/>
@@ -305,7 +308,7 @@
                 </Anchors>
             </Button>
 
-            <!-- Progress Bar Frame -->
+            <!-- Progress Bar Frame (Achievement Frame style) -->
             <StatusBar name="BattlePassProgressBar" minValue="0" maxValue="100" defaultValue="0" drawLayer="BORDER">
                 <Size>
                     <AbsDimension x="800" y="21"/>
@@ -399,6 +402,7 @@
 
                 <Layers>
                     <Layer level="BACKGROUND">
+                        <!-- Dark textured background (Reputation UI style) -->
                         <Texture file="Interface\PaperDollInfoFrame\UI-Character-General-BottomLeft">
                             <Anchors>
                                 <Anchor point="TOPLEFT" x="11" y="-12"/>
@@ -429,7 +433,7 @@
                 </Scripts>
             </Frame>
 
-            <!-- Horizontal ScrollBar -->
+            <!-- Horizontal ScrollBar (Achievement UI style) -->
             <Slider name="BattlePassScrollBar" orientation="HORIZONTAL" enableMouse="true">
                 <Size x="820" y="18"/>
                 <Anchors>
@@ -492,7 +496,7 @@
                 <HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD"/>
             </Button>
 
-            <!-- Bottom Buttons -->
+            <!-- Bottom Buttons (Achievement Category style) -->
             <Button name="BattlePassSyncButton">
                 <Size x="158" y="24"/>
                 <Anchors>
@@ -642,7 +646,7 @@
         </Scripts>
     </Frame>
 
-    <!-- Level Item Template -->
+    <!-- Level Item Template - Premium Card Style -->
     <Button name="BattlePassLevelItemTemplate" virtual="true" enableMouse="true">
         <Size x="92" y="150"/>
 
@@ -657,6 +661,7 @@
 
         <Layers>
             <Layer level="ARTWORK">
+                <!-- Level Number at Top (no background) -->
                 <FontString name="$parentLevel" inherits="GameFontNormal" justifyH="CENTER" text="1">
                     <Size x="82" y="16"/>
                     <Anchors>
@@ -669,6 +674,7 @@
                     </Shadow>
                 </FontString>
 
+                <!-- Large Reward Icon -->
                 <Texture name="$parentIcon" file="Interface\Icons\INV_Misc_QuestionMark">
                     <Size x="56" y="56"/>
                     <Anchors>
@@ -678,6 +684,7 @@
             </Layer>
 
             <Layer level="BORDER">
+                <!-- Reward Name (Achievement style font) -->
                 <FontString name="$parentName" inherits="GameFontHighlight" justifyH="CENTER" text="Unknown">
                     <Size x="82" y="32"/>
                     <Anchors>
@@ -685,6 +692,7 @@
                     </Anchors>
                 </FontString>
 
+                <!-- Status Text at Bottom (no background) -->
                 <FontString name="$parentStatus" inherits="GameFontNormalSmall" justifyH="CENTER" text="Locked">
                     <Size x="82" y="14"/>
                     <Anchors>
@@ -694,6 +702,7 @@
             </Layer>
 
             <Layer level="OVERLAY">
+                <!-- Icon Border (Achievement Frame style - in OVERLAY layer to be on top) -->
                 <Texture name="$parentIconOverlay" file="Interface\AchievementFrame\UI-Achievement-IconFrame">
                     <Size x="80" y="80"/>
                     <Anchors>
@@ -704,6 +713,7 @@
                     <TexCoords left="0" right="0.625" top="0" bottom="0.625"/>
                 </Texture>
 
+                <!-- Claimed Checkmark -->
                 <Texture name="$parentCheckmark" file="Interface\RaidFrame\ReadyCheck-Ready" hidden="true">
                     <Size x="28" y="28"/>
                     <Anchors>
@@ -711,6 +721,7 @@
                     </Anchors>
                 </Texture>
 
+                <!-- Locked/Desaturated overlay -->
                 <Texture name="$parentBlackOverlay" file="Interface\Buttons\WHITE8X8" hidden="true">
                     <Anchors>
                         <Anchor point="TOPLEFT" x="3" y="-3"/>
@@ -722,9 +733,11 @@
         </Layers>
 
         <Frames>
+            <!-- Highlight Frame (Achievement style - border glow on hover) -->
             <Frame name="$parentHighlight" setAllPoints="true" hidden="true" enableMouse="false">
                 <Layers>
                     <Layer level="OVERLAY">
+                        <!-- Top left corner -->
                         <Texture name="$parentHighlightTL" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD">
                             <Size x="16" y="16"/>
                             <Anchors>
@@ -732,6 +745,7 @@
                             </Anchors>
                             <TexCoords left="0.06640625" right="0" top="0.4375" bottom="0.65625"/>
                         </Texture>
+                        <!-- Top right corner -->
                         <Texture name="$parentHighlightTR" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD">
                             <Size x="16" y="16"/>
                             <Anchors>
@@ -739,6 +753,7 @@
                             </Anchors>
                             <TexCoords left="0" right="0.06640625" top="0.4375" bottom="0.65625"/>
                         </Texture>
+                        <!-- Bottom left corner -->
                         <Texture name="$parentHighlightBL" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD">
                             <Size x="16" y="16"/>
                             <Anchors>
@@ -746,6 +761,7 @@
                             </Anchors>
                             <TexCoords left="0.06640625" right="0" top="0.65625" bottom="0.4375"/>
                         </Texture>
+                        <!-- Bottom right corner -->
                         <Texture name="$parentHighlightBR" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD">
                             <Size x="16" y="16"/>
                             <Anchors>
@@ -753,6 +769,7 @@
                             </Anchors>
                             <TexCoords left="0" right="0.06640625" top="0.65625" bottom="0.4375"/>
                         </Texture>
+                        <!-- Top edge -->
                         <Texture name="$parentHighlightTop" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD">
                             <Anchors>
                                 <Anchor point="TOPLEFT" relativeTo="$parentHighlightTL" relativePoint="TOPRIGHT"/>
@@ -760,6 +777,7 @@
                             </Anchors>
                             <TexCoords left="0" right="0.015" top="0.4375" bottom="0.65625"/>
                         </Texture>
+                        <!-- Bottom edge -->
                         <Texture name="$parentHighlightBottom" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD">
                             <Anchors>
                                 <Anchor point="TOPLEFT" relativeTo="$parentHighlightBL" relativePoint="TOPRIGHT"/>
@@ -767,6 +785,7 @@
                             </Anchors>
                             <TexCoords left="0" right="0.015" top="0.65625" bottom="0.4375"/>
                         </Texture>
+                        <!-- Left edge -->
                         <Texture name="$parentHighlightLeft" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD">
                             <Anchors>
                                 <Anchor point="TOPLEFT" relativeTo="$parentHighlightTL" relativePoint="BOTTOMLEFT"/>
@@ -774,6 +793,7 @@
                             </Anchors>
                             <TexCoords left="0.06640625" right="0" top="0.65625" bottom="0.6"/>
                         </Texture>
+                        <!-- Right edge -->
                         <Texture name="$parentHighlightRight" file="Interface\PaperDollInfoFrame\UI-Character-ReputationBar-Highlight" alphaMode="ADD">
                             <Anchors>
                                 <Anchor point="TOPLEFT" relativeTo="$parentHighlightTR" relativePoint="BOTTOMLEFT"/>

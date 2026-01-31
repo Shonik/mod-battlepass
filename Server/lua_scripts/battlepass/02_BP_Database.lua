@@ -96,7 +96,6 @@ end
 -- Saves player data to the database
 function BattlePass.DB.SavePlayerProgress(guid, data)
     if not data then
-        BattlePass.Error("Cannot save nil data for GUID " .. guid)
         return
     end
 
@@ -145,7 +144,6 @@ end
 function BattlePass.DB.MarkLevelClaimed(guid, level)
     local data = BattlePass.PlayerCache[guid]
     if not data then
-        BattlePass.Error("No cached data for GUID " .. guid)
         return
     end
 
@@ -167,7 +165,6 @@ end
 function BattlePass.DB.UnmarkLevelClaimed(guid, level)
     local data = BattlePass.PlayerCache[guid]
     if not data then
-        BattlePass.Error("No cached data for GUID " .. guid)
         return false
     end
 
@@ -279,7 +276,6 @@ end
 function BattlePass.DB.AddPlayerExp(guid, amount)
     local data = BattlePass.PlayerCache[guid]
     if not data then
-        BattlePass.Error("No cached data for GUID " .. guid)
         return
     end
 

@@ -19,8 +19,6 @@ local function OnPlayerLogin(event, player)
         return
     end
 
-    BattlePass.Debug("Player login: " .. player:GetName())
-
     local data = BattlePass.DB.GetOrCreatePlayerData(player)
 
     local guid = player:GetGUIDLow()
@@ -29,14 +27,12 @@ local function OnPlayerLogin(event, player)
 
         if exp > 0 then
             BattlePass.DB.UpdateDailyLogin(guid)
-
-            player:SendBroadcastMessage(
-                "|cff00ff00[Battle Pass]|r Daily login bonus!")
         end
     end
 
     local unclaimedCount = BattlePass.Progress.CountUnclaimedRewards(player)
     if unclaimedCount > 0 then
+        -- TODO : replace with visual cue
         player:SendBroadcastMessage(string.format(
             "|cffff8000[Battle Pass]|r You have %d unclaimed reward(s)! Use |cff00ff00.bp|r",
             unclaimedCount))
@@ -47,8 +43,6 @@ local function OnPlayerLogout(event, player)
     if not BattlePass.IsEnabled() then
         return
     end
-
-    BattlePass.Debug("Player logout: " .. player:GetName())
 
     BattlePass.DB.SaveIfDirty(player)
 
@@ -63,9 +57,6 @@ local function OnCreatureKill(event, player, creature)
 
     local creatureId = creature:GetEntry()
     local rank = creature:GetRank() -- 0=normal, 1=elite, 2=rare elite, 3=boss
-
-    BattlePass.Debug(string.format("Creature kill: %s (entry: %d, rank: %d)",
-        creature:GetName(), creatureId, rank))
 
     local sourceType = "KILL_CREATURE"
 
@@ -94,9 +85,6 @@ local function OnQuestComplete(event, player, quest)
     local questId = quest:GetId()
     local isDaily = quest:IsDailyQuest()
 
-    BattlePass.Debug(string.format("Quest complete: %d (daily: %s)",
-        questId, tostring(isDaily)))
-
     local sourceType = isDaily and "COMPLETE_DAILY" or "COMPLETE_QUEST"
 
     -- Try specific ID first, then generic
@@ -119,9 +107,6 @@ local function OnPlayerLevelChange(event, player, oldLevel)
 
     -- Only for level gains, not reductions
     if newLevel > oldLevel then
-        BattlePass.Debug(string.format("Player level up: %s (%d -> %d)",
-            player:GetName(), oldLevel, newLevel))
-
         BattlePass.Progress.AwardFromSource(player, "PLAYER_LEVELUP", 0)
     end
 end
@@ -139,8 +124,6 @@ local function OnHonorableKill(event, player, victim)
         return
     end
 
-    BattlePass.Debug("Honorable kill by " .. player:GetName())
-
     BattlePass.Progress.AwardFromSource(player, "HONOR_KILL", 0)
 end
 
@@ -153,11 +136,8 @@ local function OnBattlegroundEndHook(event, bg, bgId, instanceId, winner)
         return
     end
 
-    BattlePass.Debug(string.format("Battleground ended: bgId=%d, winner=%d", bgId or 0, winner or -1))
-
     local players = bg:GetPlayers()
     if not players then
-        BattlePass.Debug("No players found in BG")
         return
     end
 
@@ -166,22 +146,9 @@ local function OnBattlegroundEndHook(event, bg, bgId, instanceId, winner)
             local team = player:GetTeam()
             local isWinner = (winner == team)
             local sourceType = isWinner and "WIN_BATTLEGROUND" or "LOSE_BATTLEGROUND"
-            BattlePass.Debug(string.format("BG reward for %s: %s", player:GetName(), sourceType))
             BattlePass.Progress.AwardFromSource(player, sourceType, bgId)
         end
     end
-end
-
--- Legacy function for manual calls
-function BattlePass.Events.OnBattlegroundEnd(player, isWinner)
-    if not BattlePass.IsEnabled() then
-        return
-    end
-
-    local sourceType = isWinner and "WIN_BATTLEGROUND" or "LOSE_BATTLEGROUND"
-    BattlePass.Debug("Battleground end for " .. player:GetName() .. " (win: " .. tostring(isWinner) .. ")")
-
-    BattlePass.Progress.AwardFromSource(player, sourceType, 0)
 end
 
 -- ============================================================================
@@ -198,11 +165,10 @@ function BattlePass.Events.AwardCustomExp(player, amount, reason)
 end
 
 -- ============================================================================
--- Server Events
+-- Server Item events
 -- ============================================================================
 
 local function OnServerShutdown(event)
-    BattlePass.Info("Server shutdown - saving all Battle Pass data...")
     BattlePass.DB.SaveAllCached()
 end
 
@@ -220,5 +186,3 @@ RegisterPlayerEvent(6, OnHonorableKill)   -- PLAYER_EVENT_ON_KILL_PLAYER
 
 RegisterServerEvent(15, OnServerShutdown)  -- WORLD_EVENT_ON_SHUTDOWN
 RegisterBGEvent(2, OnBattlegroundEndHook)       -- BG_EVENT_ON_END
-
-BattlePass.Info("Event hooks registered")

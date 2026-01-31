@@ -6,9 +6,6 @@
     Uses SendServerResponse via addon messages.
 ]]
 
--- Require CSMH Server Message Handler
-require("lib.CSMH.CSMH_SMH")
-
 -- Namespace
 BattlePass = BattlePass or {}
 BattlePass.Communication = BattlePass.Communication or {}
@@ -35,16 +32,8 @@ end
 -- Handler for claim request (function ID 2)
 -- Receives: { level }
 function OnClaimRequest(player, args)
-    if not args or #args < 1 then
-        BattlePass.Communication.SendError(player, "INVALID", "Invalid claim request")
-        return
-    end
 
     local level = tonumber(args[1])
-    if not level then
-        BattlePass.Communication.SendError(player, "INVALID", "Invalid level")
-        return
-    end
 
     BattlePass.Rewards.ClaimReward(player, level)
 end
@@ -95,8 +84,6 @@ function BattlePass.Communication.SendSync(player)
         claimedTable,
         configTable
     )
-
-    BattlePass.Debug("Sent sync to " .. player:GetName())
 end
 
 -- Sends level definitions to the player (function ID 2)
@@ -138,8 +125,6 @@ function BattlePass.Communication.SendLevelDefinitions(player)
 
     -- Send via CSMH (function ID 2: OnLevelDefinitions)
     player:SendServerResponse(CSMHConfig.Prefix, 2, levelsTable)
-
-    BattlePass.Debug("Sent level definitions to " .. player:GetName())
 end
 
 -- Sends a progression update after XP gain (function ID 3)
@@ -155,8 +140,6 @@ function BattlePass.Communication.SendProgressUpdate(player, gainedExp, levelsGa
         status.exp_required,
         levelsGained
     )
-
-    BattlePass.Debug("Sent progress update to " .. player:GetName())
 end
 
 -- Sends a claim confirmation (function ID 4)
@@ -185,20 +168,13 @@ function BattlePass.Communication.SendClaimConfirmation(player, level, success, 
         message,
         updatedLevels
     )
-
-    BattlePass.Debug("Sent claim confirmation to " .. player:GetName() .. " for level " .. level)
 end
 
--- Sends an error message to the addon (function ID 5)
+-- Send battlepass item used to the client(function ID 6)
 -- Sends: code, message
-function BattlePass.Communication.SendError(player, code, message)
-    -- Send via CSMH (function ID 5: OnError)
-    player:SendServerResponse(CSMHConfig.Prefix, 5,
-        code or "UNKNOWN",
-        message or "Unknown error"
-    )
-
-    BattlePass.Debug("Sent error to " .. player:GetName() .. ": " .. (message or code))
+function BattlePass.Communication.SendItemUse(player)
+    -- Send via CSMH (function ID 6: OnItemUse)
+    player:SendServerResponse(CSMHConfig.Prefix, 6)
 end
 
 -- ============================================================================
@@ -208,11 +184,8 @@ end
 -- Performs a full synchronization with the client
 function BattlePass.Communication.FullSync(player)
     if not BattlePass.IsEnabled() then
-        BattlePass.Communication.SendError(player, "DISABLED", "Battle Pass is disabled")
         return
     end
-
-    BattlePass.Debug("Full sync for " .. player:GetName())
 
     -- Send level definitions first, then sync data
     BattlePass.Communication.SendLevelDefinitions(player)
@@ -221,5 +194,3 @@ end
 
 -- Register CSMH client request handlers
 RegisterClientRequests(CSMHConfig)
-
-BattlePass.Debug("CSMH Communication module loaded")

@@ -3,10 +3,6 @@
     BP_Commands.lua
 
     Chat commands for players and administrators.
-
-    IMPORTANT: This module must NOT block other game commands.
-    The handler returns false by default to let non-BP commands
-    pass through to other handlers.
 ]]
 
 -- Namespace
@@ -450,10 +446,6 @@ local function HandleBPAdminCommand(player, command)
 end
 
 -- Command Registration
-
--- In Eluna PLAYER_EVENT_ON_COMMAND:
---   return false = command handled, suppress "Command does not exist"
---   return true (or nil) = pass to other handlers
 local function OnCommand(event, player, command)
     if not command or not player then
         return
@@ -485,5 +477,3 @@ local function OnCommand(event, player, command)
 end
 
 RegisterPlayerEvent(42, OnCommand) -- PLAYER_EVENT_ON_COMMAND
-
-BattlePass.Info("Commands registered: .bp, .bpadmin")

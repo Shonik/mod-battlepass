@@ -1,17 +1,11 @@
 --[[
-    Battle Pass Client Addon
+    Battle Pass - FrameXML Module
     BattlePass.lua
 
     UI and communication handling for the Battle Pass system.
+    Loaded as part of the native UI via Interface/FrameXML.
     Uses CSMH (Client Server Message Handler) for server communication.
 ]]
-
--- ============================================================================
--- Saved Variables (initialized on first load)
--- ============================================================================
-
-BattlePassDB = BattlePassDB or {}
-BattlePassCharDB = BattlePassCharDB or {}
 
 -- ============================================================================
 -- CSMH Configuration
@@ -23,16 +17,13 @@ local CSMHConfig = {
         [1] = "BattlePass_OnFullSync",
         [2] = "BattlePass_OnLevelDefinitions",
         [3] = "BattlePass_OnProgressUpdate",
-        [4] = "BattlePass_OnClaimResult",
-        [5] = "BattlePass_OnError",
+        [4] = "BattlePass_OnClaimResult"
     }
 }
 
 -- ============================================================================
 -- Local Variables
 -- ============================================================================
-
-local ADDON_NAME = "BattlePass"
 
 -- Player data
 local playerData = {
@@ -55,9 +46,11 @@ local levelItems = {}  -- Changed from levelRows to levelItems
 local scrollOffset = 0
 local VISIBLE_ITEMS = 8  -- Number of items visible horizontally
 local ITEM_WIDTH = 103   -- Width of each level card (92 + 11 spacing)
+local ITEMS_PER_ROW = 8  -- Items displayed per row
 
--- Timer for delayed actions
+-- Timer for delayed actions (3.3.5 compatible)
 local pendingTimer = nil
+local timerElapsed = 0
 
 -- ============================================================================
 -- Utility Functions
@@ -126,10 +119,9 @@ end
 -- CSMH Message Handlers (Server -> Client)
 -- ============================================================================
 
--- Handler for full sync response
+-- Handler for full sync response (function ID 1)
 -- Receives: { level, currentExp, expRequired, totalExp, maxLevel, claimedLevels (table), config (table) }
 function BattlePass_OnFullSync(sender, args)
-    if not args or #args < 6 then return end
 
     playerData.level = args[1] or 0
     playerData.currentExp = args[2] or 0
@@ -152,10 +144,9 @@ function BattlePass_OnFullSync(sender, args)
     BattlePass_UpdateUI()
 end
 
--- Handler for level definitions
+-- Handler for level definitions (function ID 2)
 -- Receives: { levels (table of level definitions) }
 function BattlePass_OnLevelDefinitions(sender, args)
-    if not args or #args < 1 then return end
 
     local levels = args[1]
     if type(levels) ~= "table" then return end
@@ -177,10 +168,9 @@ function BattlePass_OnLevelDefinitions(sender, args)
     BattlePass_UpdateUI()
 end
 
--- Handler for progress updates
+-- Handler for progress updates (function ID 3)
 -- Receives: { gainedExp, newLevel, currentExp, expRequired, levelsGained }
 function BattlePass_OnProgressUpdate(sender, args)
-    if not args or #args < 5 then return end
 
     local gainedExp = args[1] or 0
     local newLevel = args[2] or playerData.level
@@ -206,10 +196,9 @@ function BattlePass_OnProgressUpdate(sender, args)
     BattlePass_UpdateUI()
 end
 
--- Handler for claim result
+-- Handler for claim result (function ID 4)
 -- Receives: { success, level, message, updatedLevels (optional) }
 function BattlePass_OnClaimResult(sender, args)
-    if not args or #args < 3 then return end
 
     local success = args[1]
     local level = args[2]
@@ -217,9 +206,6 @@ function BattlePass_OnClaimResult(sender, args)
 
     if success then
         playerData.claimedLevels[level] = true
-        print("|cff00ff00[Battle Pass]|r " .. (message or "Reward claimed!"))
-    else
-        print("|cffff0000[Battle Pass]|r " .. (message or "Failed to claim reward."))
     end
 
     -- If updated levels table is provided, refresh definitions
@@ -234,32 +220,21 @@ function BattlePass_OnClaimResult(sender, args)
     BattlePass_UpdateUI()
 end
 
--- Handler for error messages
--- Receives: { code, message }
-function BattlePass_OnError(sender, args)
-    if not args or #args < 2 then return end
-
-    local code = args[1] or "UNKNOWN"
-    local message = args[2] or "Unknown error"
-
-    print("|cffff0000[Battle Pass Error]|r " .. message)
-end
-
 -- ============================================================================
 -- Client -> Server Communication
 -- ============================================================================
 
--- Request sync from server
+-- Request sync from server (function ID 1)
 function BattlePass_RequestSync()
     SendClientRequest(CSMHConfig.Prefix, 1)
 end
 
--- Request to claim a specific level
+-- Request to claim a specific level (function ID 2)
 local function RequestClaimLevel(level)
     SendClientRequest(CSMHConfig.Prefix, 2, level)
 end
 
--- Request to claim all available rewards
+-- Request to claim all available rewards (function ID 3)
 function BattlePass_ClaimAll()
     SendClientRequest(CSMHConfig.Prefix, 3)
 end
@@ -273,6 +248,7 @@ local isInitialized = false
 
 -- Initialize the main frame
 function BattlePass_OnFrameLoad(frame)
+    -- Just set up basic frame properties here (OnLoad happens before chat is ready)
     if frame then
         frame:RegisterForDrag("LeftButton")
     end
@@ -281,12 +257,6 @@ end
 -- Initialize level items and register CSMH handlers (called when addon is ready)
 local function InitializeAddon()
     if isInitialized then
-        return
-    end
-
-    -- Verify scroll content exists
-    if not BattlePassScrollContent then
-        print("|cffff0000[Battle Pass]|r ERROR: BattlePassScrollContent not found")
         return
     end
 
@@ -299,8 +269,6 @@ local function InitializeAddon()
             item:SetPoint("TOPLEFT", (i-1) * ITEM_WIDTH, 0)
             item.index = i
             levelItems[i] = item
-        else
-            print("|cffff0000[Battle Pass]|r ERROR: Failed to create item " .. i)
         end
     end
 
@@ -314,7 +282,7 @@ end
 function BattlePass_UpdateUI()
     if not BattlePassFrame or not BattlePassFrame:IsShown() then return end
 
-    -- Update level text
+    -- Update level text (Achievement Frame style: big number + small max)
     local levelText = _G["BattlePassLevelText"]
     local maxLevelText = _G["BattlePassMaxLevelText"]
 
@@ -520,15 +488,6 @@ function BattlePass_OnLevelItemClick(self)
     if status == 1 then
         -- Available: claim this reward via CSMH
         RequestClaimLevel(level)
-    elseif status == 2 then
-        -- Already claimed
-        print("|cff888888[Battle Pass]|r Level " .. level .. " already claimed.")
-    elseif status == 3 then
-        -- Already owns the reward
-        print("|cffffaa00[Battle Pass]|r You already own this reward!")
-    elseif status == 0 then
-        -- Locked
-        print("|cff888888[Battle Pass]|r Reach level " .. level .. " to claim this reward.")
     end
 end
 
@@ -580,7 +539,7 @@ function BattlePass_OnShow()
 end
 
 -- ============================================================================
--- XP Gain Animation
+-- XP Gain Animation (3.3.5 compatible - simple fade)
 -- ============================================================================
 
 local xpGainFadeTime = 0
@@ -621,11 +580,7 @@ end
 -- ============================================================================
 
 function BattlePass_ShowLevelUp(newLevel)
-    -- Play sound (LEVELUPSOUND = 888)
-    -- PlaySound("LevelUp")
-
-    -- Print message
-    print("|cffff8000[Battle Pass]|r Level " .. newLevel .. " reached!")
+    -- TODO : add visual cues
 end
 
 -- ============================================================================
@@ -646,7 +601,7 @@ function BattlePass_ScrollPrev()
     scrollOffset = math.max(0, scrollOffset - VISIBLE_ITEMS)
     BattlePass_UpdateScrollFrame()
     BattlePassScrollBar_Update()
-    -- PlaySound("igMainMenuOptionCheckBoxOn")
+    PlaySound("igMainMenuOptionCheckBoxOn")
 end
 
 -- Scroll to next items (navigate right)
@@ -655,11 +610,11 @@ function BattlePass_ScrollNext()
     scrollOffset = math.min(maxOffset, scrollOffset + VISIBLE_ITEMS)
     BattlePass_UpdateScrollFrame()
     BattlePassScrollBar_Update()
-    --PlaySound("igMainMenuOptionCheckBoxOn")
+    PlaySound("igMainMenuOptionCheckBoxOn")
 end
 
 -- ============================================================================
--- Horizontal ScrollBar Handlers
+-- Horizontal ScrollBar Handlers (Achievement UI style)
 -- ============================================================================
 
 function BattlePassScrollBar_OnLoad(self)
@@ -679,7 +634,6 @@ function BattlePassScrollBar_OnValueChanged(self, value)
 end
 
 function BattlePassScrollBar_Update()
-    if not BattlePassScrollBar then return end
 
     local maxOffset = math.max(0, playerData.maxLevel - VISIBLE_ITEMS)
 
@@ -746,11 +700,10 @@ SlashCmdList["BATTLEPASS"] = function(msg)
 end
 
 -- ============================================================================
--- Event Handler
+-- Event Handler (FrameXML - no ADDON_LOADED, initialize on PLAYER_LOGIN)
 -- ============================================================================
 
 local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
@@ -761,7 +714,7 @@ eventFrame:SetScript("OnUpdate", function(self, elapsed)
     -- Handle XP gain fade animation
     XPGainFadeUpdate(self, elapsed)
 
-    -- Handle delayed login sync
+    -- Handle delayed login sync (replaces C_Timer.After)
     if pendingTimer then
         loginTimer = loginTimer + elapsed
         if loginTimer >= 2 then
@@ -773,12 +726,9 @@ eventFrame:SetScript("OnUpdate", function(self, elapsed)
 end)
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
-    if event == "ADDON_LOADED" then
-        local addonName = ...
-        if addonName == "BattlePass" then
-            InitializeAddon()
-        end
-    elseif event == "PLAYER_LOGIN" then
+    if event == "PLAYER_LOGIN" then
+        -- FrameXML: initialize here instead of ADDON_LOADED
+        InitializeAddon()
         -- Initial sync after a short delay (2 seconds)
         if not loginSyncDone then
             pendingTimer = true
